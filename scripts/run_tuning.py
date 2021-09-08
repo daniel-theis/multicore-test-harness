@@ -668,14 +668,14 @@ class Optimization:
             objective_function.stored_mapping = config
             data_range = config.enemies[0].get_defines_range()
             bo = BayesianOptimization(objective_function.bo_call, data_range, verbose=0)
-            bo.init(init_points=init_pts)
-            bo.maximize(n_iter=1, kappa=kappa_val)
+            #bo.init(init_points=init_pts)
+            bo.maximize(init_points=init_pts, n_iter=1, kappa=kappa_val)
             it = 1
             while it < iterations and time() < self._t_end:
                 bo.maximize(n_iter=1, kappa=kappa_val)
                 it += 1
             for core in range(config.enemy_cores):
-                config.enemies[core].set_defines(bo.res['max']['max_params'])
+                config.enemies[core].set_defines(bo.max['params'])
         else:
             iterations = int(self._experiment_info.tuning_max_iterations/config.enemy_cores - init_pts)
             assert iterations > 0, "Bayesian optimization needs more iterations to work"
