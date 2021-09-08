@@ -56,7 +56,9 @@ class PlotTuningResults(object):
             max_measurement = max(measurements_flattened)
 
 
-            print(f"Minimum of victim measurement {min_measurement}\n"
+            print(f"SUT: {self.results[k]['sut']}\n"
+
+                  f"Minimum of victim measurement {min_measurement}\n"
 
                   f"Maximum of victim measurement {max_measurement}\n"
 
