@@ -250,7 +250,8 @@ class MappingResult:
         for res in perf_results:
             sums = dict(Counter(sums) + Counter(res))
         means = {k: sums[k] / float(len(perf_results)) for k in sums}
-        self.perf = means
+        # self.perf = means
+	self.perf = perf_results
         self.measurements = total_times
         self.no_outliers_measurements = remove_outliers(total_times)
         self.temps = total_temps
