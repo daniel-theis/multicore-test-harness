@@ -30,9 +30,10 @@ import os
 import math
 import socket
 import pickle
+import shutil
 
 from termcolor import colored
-from time import time
+from time import time, strftime, gmtime
 from random import randrange, uniform, choice, random, shuffle, seed
 from collections import OrderedDict
 from copy import deepcopy
@@ -385,7 +386,7 @@ class EnemyConfiguration:
         enemy_mapping = dict()
 
         for i in range(self.enemy_cores):
-            filename = output_folder + prefix + str(i+1) + "_enemy"
+            filename = os.path.join(output_folder, prefix + str(i+1) + "_enemy")
             self.enemies[i].create_bin(filename)
             # Start mapping the enemies from core 1
             enemy_mapping[i + 1] = filename
@@ -466,9 +467,10 @@ class ObjectiveFunction:
             # times = pickle.loads(pickled_ex_time)
         # else:
         self._enemy_mapping = enemy_config.get_file_mapping()
-        s = SutStress()
+        # s = SutStress()
+        s = SutStress(self._experiment_info.instrument_cmd)
 
-        result = s.run_mapping(experiment_info= self._experiment_info,
+        result = s.run_mapping(experiment_info=self._experiment_info,
                                mapping=self._enemy_mapping,
                                iteration_name=str(enemy_config))
         if self.best_score is None or result.q_value > self.best_score:
@@ -668,13 +670,14 @@ class Optimization:
             objective_function.stored_mapping = config
             data_range = config.enemies[0].get_defines_range()
             bo = BayesianOptimization(objective_function.bo_call, data_range, verbose=0)
-            #bo.init(init_points=init_pts)
+            # bo.init()
             bo.maximize(init_points=init_pts, n_iter=1, kappa=kappa_val)
             it = 1
             while it < iterations and time() < self._t_end:
                 bo.maximize(n_iter=1, kappa=kappa_val)
                 it += 1
             for core in range(config.enemy_cores):
+                # config.enemies[core].set_defines(bo.res['max']['max_params'])
                 config.enemies[core].set_defines(bo.max['params'])
         else:
             iterations = int(self._experiment_info.tuning_max_iterations/config.enemy_cores - init_pts)
@@ -937,12 +940,19 @@ class Tuning:
             print("I do not know how to simple train that way")
             sys.exit(0)
 
-        best_state.get_file_mapping(prefix=str(self._experiment_info.experiment_name) + "_",
-                                    output_folder=self._experiment_info.output_binary)
+        output_folder = os.path.join(self._experiment_info.output_binary,
+                                     strftime("%Y-%m-%d-%H:%M:%S", gmtime())
+                                     )
+        self.output_folder = output_folder
 
-        f = open(self._experiment_info.max_file, 'w')
-        f.write("Max time " + str(best_score) + "\n" + str(best_state))
-        f.close()
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        best_state.get_file_mapping(prefix=str(self._experiment_info.experiment_name) + "_",
+                                    output_folder=output_folder)
+
+        with open(os.path.join(output_folder, self._experiment_info.max_file), 'w') as f:
+            f.write("Max time " + str(best_score) + "\n" + str(best_state))
 
     def run(self, input_file, output_file):
         """
@@ -1017,6 +1027,7 @@ class Tuning:
             self.cleanup()
 
         self._log.merge_docs(output_file)
+        shutil.copy(output_file, os.path.join(self.output_folder, os.path.basename(output_file)))
 
 
 if __name__ == "__main__":
