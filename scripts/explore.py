@@ -1,4 +1,5 @@
 import sys
+sys.argv = input('Enter command line arguments: ').split()
 
 import json
 
@@ -16,14 +17,9 @@ from matplotlib import pyplot as plt
 class ExploreTuningResults(object):
 
     """A simple plotter for visualizing tuning results.
-
-
     Attributes:
-
         results_json_file:
-
             Path to json file which contains tuning results.
-
     """
 
     def __init__(self, results_json_file=None):
@@ -51,15 +47,10 @@ class ExploreTuningResults(object):
     def build_dataframe(self, k):
 
         """Convert json results into a single pandas dataframe.
-
             Args:
-
                 k: key/name for the experiment setup in tune*.json.
-
             Returns:
-
                 df: dataframe extracted from json formatted result
-
         """
 
 
@@ -90,35 +81,55 @@ class ExploreTuningResults(object):
 
             return (list(configs), list(values))
 
-
+        def _get_perf_data(perfdic):
+            
+            perf_configs=[]
+            
+            perf_values=[]
+            
+            for key, value in perfdic[0].items():
+                
+                perf_configs.append(key)
+                
+                perf_values.append(value)
+            
+            return perf_configs, perf_values
+        
         result = self.results[k]['it']
-
-
+        
+        perf_dic, _ = _get_perf_data(result['0']['perf'])
+        
         columns = ["measurements", "temps", "voluntary_switches", "invluntary_switches"]
 
         configs, _ = _get_enemy_config(next(iter(result.items()))[1]["mapping"])
 
-
-        fused = {m: list() for m in columns+configs}
-
+        fused = {m: list() for m in columns+configs+perf_dic}
+        
         for r in result:
-
+            
+            perfs=result[r]['perf']
+                
             num_exp = len(result[r][columns[0]])
+            
+            configs, values = _get_enemy_config(result[r]["mapping"])
 
             for c in columns:
 
                 # assert num_exp == len(result[r][c]), print(c)
 
                 fused[c].extend(result[r][c])
-
-
-            configs, values = _get_enemy_config(result[r]["mapping"])
-
+                    
+            for i in range(len(perfs)):
+                
+                for c in perf_dic:
+                 
+                    fused[c].append(perfs[i][c])
+                
             for c, v in zip(configs, values):
 
                 fused[c].extend([v]*num_exp)
-
-
+     
+            
         df = pd.DataFrame(fused)
 
         return df
@@ -127,14 +138,9 @@ class ExploreTuningResults(object):
     def plot_results(self, m="measurements", style="box"):
 
         """Plot function.
-
         Args:
-
             m: key of results to plot, example "measurements" or "no_outliers_measurements".
-
             style: which style to use for plotting; implemented includes box and bar.
-
-
         """
 
         for k in self.results:
@@ -223,6 +229,4 @@ if __name__ == "__main__":
 
     # data_explorer.plot_results(m="no_outliers_measurements", style="bar")
 
-    data_explorer.build_dataframe("cache_random_tune")
-
-
+    data_explorer.build_dataframe("L1_bo_tune_perf")
