@@ -1,5 +1,5 @@
 import sys
-sys.argv = input('Enter command line arguments: ').split()
+
 
 import json
 
@@ -97,14 +97,20 @@ class ExploreTuningResults(object):
         
         result = self.results[k]['it']
         
-        perf_dic, _ = _get_perf_data(result['0']['perf'])
-        
         columns = ["measurements", "temps", "voluntary_switches", "invluntary_switches"]
 
         configs, _ = _get_enemy_config(next(iter(result.items()))[1]["mapping"])
 
-        fused = {m: list() for m in columns+configs+perf_dic}
+        if result['0']['perf']:
+
+            perf_dic, _ = _get_perf_data(result['0']['perf'])
         
+            fused = {m: list() for m in columns+configs+perf_dic}
+        
+        else:
+
+            fused = {m: list() for m in columns+configs}
+
         for r in result:
             
             perfs=result[r]['perf']
@@ -119,11 +125,13 @@ class ExploreTuningResults(object):
 
                 fused[c].extend(result[r][c])
                     
-            for i in range(len(perfs)):
+            if result[r]['perf']:
+
+                for i in range(len(perfs)):
                 
-                for c in perf_dic:
+                    for c in perf_dic:
                  
-                    fused[c].append(perfs[i][c])
+                        fused[c].append(perfs[i][c])
                 
             for c, v in zip(configs, values):
 
