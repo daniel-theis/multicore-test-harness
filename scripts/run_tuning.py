@@ -972,7 +972,7 @@ class Tuning:
 
             # To give each tuning a fair chance.
             # We do not need this at this time
-            # seed(1000)
+            seed(1000)
 
             if self._experiment_info.method == "sa_ran":
                 print("Tuning by simulated annealing on the "

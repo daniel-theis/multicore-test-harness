@@ -50,6 +50,8 @@ class PlotTuningResults(object):
 
 
             measurements_flattened = [m for c in measurements for m in c ]
+            
+            avg_measurement = np.mean(measurements_flattened)
 
             min_measurement = min(measurements_flattened)
 
@@ -57,6 +59,10 @@ class PlotTuningResults(object):
 
 
             print(f"SUT: {self.results[k]['sut']}\n"
+
+                  f"PERF:{self.results[k]['instrument_cmd']}\n"
+
+                  f"Avg of victim measurement {avg_measurement}\n"
 
                   f"Minimum of victim measurement {min_measurement}\n"
 

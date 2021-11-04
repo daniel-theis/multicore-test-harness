@@ -97,6 +97,7 @@ class ExploreTuningResults(object):
         
         result = self.results[k]['it']
         
+        
         columns = ["measurements", "temps", "voluntary_switches", "invluntary_switches"]
 
         configs, _ = _get_enemy_config(next(iter(result.items()))[1]["mapping"])
@@ -106,11 +107,13 @@ class ExploreTuningResults(object):
             perf_dic, _ = _get_perf_data(result['0']['perf'])
         
             fused = {m: list() for m in columns+configs+perf_dic}
+            #fused = {m: list() for m in columns+perf_dic}
+
         
         else:
 
             fused = {m: list() for m in columns+configs}
-
+           
         for r in result:
             
             perfs=result[r]['perf']
@@ -121,7 +124,7 @@ class ExploreTuningResults(object):
 
             for c in columns:
 
-                # assert num_exp == len(result[r][c]), print(c)
+                assert num_exp == len(result[r][c]), print(c)
 
                 fused[c].extend(result[r][c])
                     
@@ -237,4 +240,4 @@ if __name__ == "__main__":
 
     # data_explorer.plot_results(m="no_outliers_measurements", style="bar")
 
-    data_explorer.build_dataframe("L1_bo_tune_perf")
+    data_explorer.build_dataframe("cache_enemy")
